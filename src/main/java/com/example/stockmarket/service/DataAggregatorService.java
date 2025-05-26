@@ -6,4 +6,6 @@ import java.util.Map;
 
 public interface DataAggregatorService {
     Map<String, StockData> fetchAndAggregate(List<String> symbols);
+
+    Map<String, StockData> fetchAndAggregate(List<String> symbols, int movingAveragePeriod, int volatilityPeriod, int shortMAPeriod, int longMAPeriod);
 }
