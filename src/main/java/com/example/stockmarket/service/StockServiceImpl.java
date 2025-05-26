@@ -9,6 +9,8 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +18,7 @@ public class StockServiceImpl implements StockService {
     private final AlphaVantageConfig config;
     private final ExecutorService executorService;
     private final RestTemplate restTemplate = new RestTemplate();
+    private static final Logger log = LoggerFactory.getLogger(StockServiceImpl.class);
 
     @Override
     public Future<StockData> fetchStockData(String symbol) {
@@ -41,21 +44,29 @@ public class StockServiceImpl implements StockService {
             if (response.containsKey("Error Message")) {
                 return errorStockData(symbol, "API error: " + response.get("Error Message"));
             }
-            if (response.containsKey("Time Series (Daily)")) {
+            // Find the time series key dynamically
+            String timeSeriesKey = response.keySet().stream()
+                .filter(k -> k.contains("Time Series"))
+                .findFirst().orElse(null);
+            if (timeSeriesKey != null) {
                 @SuppressWarnings("unchecked")
-                Map<String, Map<String, String>> timeSeries = (Map<String, Map<String, String>>) response.get("Time Series (Daily)");
+                Map<String, Map<String, String>> timeSeries = (Map<String, Map<String, String>>) response.get(timeSeriesKey);
+                // Sort dates descending (most recent first)
+                List<String> sortedDates = new ArrayList<>(timeSeries.keySet());
+                sortedDates.sort(Comparator.reverseOrder());
                 int count = 0;
-                for (Map.Entry<String, Map<String, String>> entry : timeSeries.entrySet()) {
-                    if (count++ >= 30) break; // Limit to last 30 days
-                    LocalDate date = parseDateSafe(entry.getKey());
-                    Double close = parseDoubleSafe(entry.getValue().get("4. close"));
+                for (String dateStr : sortedDates) {
+                    LocalDate date = parseDateSafe(dateStr);
+                    Double close = parseDoubleSafe(timeSeries.get(dateStr).get("4. close"));
                     if (date != null && close != null) {
                         prices.put(date, close);
+                        count++;
                     }
+                    if (count >= 30) break; // Limit to most recent 30 valid days
                 }
                 return new StockData(symbol, prices);
             } else {
-                return errorStockData(symbol, "Unexpected API response structure");
+                return errorStockData(symbol, "Unexpected API response structure: " + response.keySet());
             }
         } catch (Exception e) {
             return errorStockData(symbol, "Exception: " + e.getMessage());
@@ -130,5 +141,43 @@ public class StockServiceImpl implements StockService {
             cash = shares * prices.get(prices.size() - 1);
         }
         return cash;
+    }
+
+    public Double calculateEMA(StockData data, int period) {
+        List<Double> prices = new ArrayList<>(data.getClosingPrices().values());
+        if (prices.size() < period) return null;
+        double multiplier = 2.0 / (period + 1);
+        double ema = prices.get(0);
+        for (int i = 1; i < prices.size(); i++) {
+            ema = ((prices.get(i) - ema) * multiplier) + ema;
+        }
+        return ema;
+    }
+
+    public Double calculateRSI(StockData data, int period) {
+        List<Double> prices = new ArrayList<>(data.getClosingPrices().values());
+        if (prices.size() <= period) return null;
+        double gain = 0;
+        double loss = 0;
+        for (int i = 1; i <= period; i++) {
+            double diff = prices.get(i) - prices.get(i - 1);
+            if (diff >= 0) gain += diff;
+            else loss -= diff;
+        }
+        gain /= period;
+        loss /= period;
+        for (int i = period + 1; i < prices.size(); i++) {
+            double diff = prices.get(i) - prices.get(i - 1);
+            if (diff >= 0) {
+                gain = (gain * (period - 1) + diff) / period;
+                loss = (loss * (period - 1)) / period;
+            } else {
+                gain = (gain * (period - 1)) / period;
+                loss = (loss * (period - 1) - diff) / period;
+            }
+        }
+        if (loss == 0) return 100.0;
+        double rs = gain / loss;
+        return 100 - (100 / (1 + rs));
     }
 }

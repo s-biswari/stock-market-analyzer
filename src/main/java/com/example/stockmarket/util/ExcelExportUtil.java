@@ -20,17 +20,21 @@ public class ExcelExportUtil {
             Row header = sheet.createRow(0);
             header.createCell(0).setCellValue("Symbol");
             header.createCell(1).setCellValue("Latest Price");
-            header.createCell(2).setCellValue("Moving Average");
-            header.createCell(3).setCellValue("Volatility");
-            header.createCell(4).setCellValue("Status Message");
+            header.createCell(2).setCellValue("EMA");
+            header.createCell(3).setCellValue("RSI");
+            header.createCell(4).setCellValue("Moving Average");
+            header.createCell(5).setCellValue("Volatility");
+            header.createCell(6).setCellValue("Status Message");
             int rowIdx = 1;
             for (StockData stock : data.values()) {
                 Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(stock.getSymbol());
                 row.createCell(1).setCellValue(stock.getLatestPrice() != null ? stock.getLatestPrice() : 0);
-                row.createCell(2).setCellValue(stock.getMovingAverage() != null ? stock.getMovingAverage() : 0);
-                row.createCell(3).setCellValue(stock.getVolatility() != null ? stock.getVolatility() : 0);
-                row.createCell(4).setCellValue(stock.getStatusMessage() != null ? stock.getStatusMessage() : "");
+                row.createCell(2).setCellValue(stock.getEma() != null ? stock.getEma() : 0);
+                row.createCell(3).setCellValue(stock.getRsi() != null ? stock.getRsi() : 0);
+                row.createCell(4).setCellValue(stock.getMovingAverage() != null ? stock.getMovingAverage() : 0);
+                row.createCell(5).setCellValue(stock.getVolatility() != null ? stock.getVolatility() : 0);
+                row.createCell(6).setCellValue(stock.getStatusMessage() != null ? stock.getStatusMessage() : "");
             }
             workbook.write(out);
         }

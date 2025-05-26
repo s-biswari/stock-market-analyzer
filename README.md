@@ -4,7 +4,7 @@ A robust, multithreaded Spring Boot application for real-time and historical sto
 
 ## Key Features
 - **Concurrent Data Fetching:** Efficiently fetches real-time and historical stock data for multiple symbols in parallel using a thread pool (ExecutorService).
-- **Customizable Analytics:** Calculates moving averages, volatility, and simulates a simple moving average trading strategy. All analytics periods are user-configurable per request.
+- **Customizable Analytics:** Calculates moving averages, volatility, EMA, RSI and simulates a simple moving average trading strategy. All analytics periods are user-configurable per request.
 - **Robust Error Handling:** Gracefully manages API rate limits, network errors, and invalid symbols.
 - **Flexible Output:** Results can be returned as JSON, or exported as CSV or Excel (XLSX) files for further analysis or reporting.
 - **Interactive API Documentation:** Integrated Swagger UI (OpenAPI) for easy exploration and testing of all endpoints.

@@ -16,6 +16,8 @@ public class StockData {
     private Double latestPrice;
     private Double movingAverage;
     private Double volatility;
+    private Double ema;
+    private Double rsi;
     private String statusMessage; // For error/status reporting
 
     public StockData(String symbol, Map<LocalDate, Double> closingPrices) {

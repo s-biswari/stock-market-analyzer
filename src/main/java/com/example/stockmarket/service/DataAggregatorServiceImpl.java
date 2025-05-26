@@ -23,6 +23,11 @@ public class DataAggregatorServiceImpl implements DataAggregatorService {
         futures.forEach((symbol, future) -> {
             try {
                 StockData data = future.get(30, TimeUnit.SECONDS);
+                if (data.getClosingPrices() == null || data.getClosingPrices().isEmpty()) {
+                    data.setStatusMessage("No data returned from API or symbol not found.");
+                    results.put(symbol, data);
+                    return;
+                }
                 // Calculate analytics
                 List<Double> ma = stockService.calculateMovingAverage(data, 5);
                 if (!ma.isEmpty()) data.setMovingAverage(ma.get(ma.size() - 1));
@@ -59,15 +64,25 @@ public class DataAggregatorServiceImpl implements DataAggregatorService {
         futures.forEach((symbol, future) -> {
             try {
                 StockData data = future.get(30, TimeUnit.SECONDS);
+                if (data.getClosingPrices() == null || data.getClosingPrices().isEmpty()) {
+                    data.setStatusMessage("No data returned from API or symbol not found.");
+                    results.put(symbol, data);
+                    return;
+                }
                 // Calculate analytics with custom periods
                 List<Double> ma = stockService.calculateMovingAverage(data, movingAveragePeriod);
                 if (!ma.isEmpty()) data.setMovingAverage(ma.get(ma.size() - 1));
-                if (data.getClosingPrices() != null && data.getClosingPrices().size() >= Math.max(movingAveragePeriod, volatilityPeriod)
+                if (data.getClosingPrices().size() >= Math.max(movingAveragePeriod, volatilityPeriod)
                     && stockService instanceof StockServiceImpl stockServiceImpl) {
                     Double volatility = stockServiceImpl.calculateVolatility(data, volatilityPeriod);
                     data.setVolatility(volatility);
                     double finalValue = stockServiceImpl.simulateSimpleMovingAverageStrategy(data, shortMAPeriod, longMAPeriod);
                     data.setStatusMessage("Simulated final portfolio value: " + finalValue);
+                    // Calculate EMA and RSI
+                    Double ema = stockServiceImpl.calculateEMA(data, movingAveragePeriod);
+                    data.setEma(ema);
+                    Double rsi = stockServiceImpl.calculateRSI(data, movingAveragePeriod);
+                    data.setRsi(rsi);
                 }
                 results.put(symbol, data);
             } catch (InterruptedException e) {
