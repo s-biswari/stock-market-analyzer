@@ -22,43 +22,71 @@ public class StockController {
         this.aggregatorService = aggregatorService;
     }
 
-    @Operation(summary = "Analyze stocks and return analytics as JSON", description = "Fetches stock data for the given symbols and returns analytics (moving average, volatility, simulated strategy) using custom periods.")
+    @Operation(summary = "Analyze stocks and return analytics as JSON", description = "Fetches stock data for the given symbols and returns analytics (moving average, volatility, simulated strategy) using custom periods and optional date range.")
     @PostMapping("/analyze")
     public Map<String, StockData> analyzeStocks(@RequestBody AnalyticsRequest request) {
-        return aggregatorService.fetchAndAggregate(
-            request.getSymbols(),
-            request.getMovingAveragePeriod(),
-            request.getVolatilityPeriod(),
-            request.getShortMAPeriod(),
-            request.getLongMAPeriod()
-        );
+        if (request.getStartDate() != null && request.getEndDate() != null) {
+            return aggregatorService.fetchAndAggregateWithDateRange(
+                request.getSymbols(),
+                request.getMovingAveragePeriod(),
+                request.getVolatilityPeriod(),
+                request.getShortMAPeriod(),
+                request.getLongMAPeriod(),
+                request.getStartDate(),
+                request.getEndDate()
+            );
+        } else {
+            return aggregatorService.fetchAndAggregate(
+                request.getSymbols(),
+                request.getMovingAveragePeriod(),
+                request.getVolatilityPeriod(),
+                request.getShortMAPeriod(),
+                request.getLongMAPeriod()
+            );
+        }
     }
 
-    @Operation(summary = "Export stock analytics as CSV", description = "Fetches stock data and analytics for the given symbols and returns the result as a downloadable CSV file. Custom periods can be specified.")
+    @Operation(summary = "Export stock analytics as CSV", description = "Fetches stock data and analytics for the given symbols and returns the result as a downloadable CSV file. Custom periods and optional date range can be specified.")
     @PostMapping(value = "/analyze/csv", produces = "text/csv")
     public void analyzeStocksCsv(@RequestBody AnalyticsRequest request, HttpServletResponse response) throws java.io.IOException {
-        Map<String, StockData> result = aggregatorService.fetchAndAggregate(
-            request.getSymbols(),
-            request.getMovingAveragePeriod(),
-            request.getVolatilityPeriod(),
-            request.getShortMAPeriod(),
-            request.getLongMAPeriod()
-        );
+        Map<String, StockData> result = (request.getStartDate() != null && request.getEndDate() != null)
+            ? aggregatorService.fetchAndAggregateWithDateRange(
+                request.getSymbols(),
+                request.getMovingAveragePeriod(),
+                request.getVolatilityPeriod(),
+                request.getShortMAPeriod(),
+                request.getLongMAPeriod(),
+                request.getStartDate(),
+                request.getEndDate())
+            : aggregatorService.fetchAndAggregate(
+                request.getSymbols(),
+                request.getMovingAveragePeriod(),
+                request.getVolatilityPeriod(),
+                request.getShortMAPeriod(),
+                request.getLongMAPeriod());
         response.setContentType("text/csv");
         response.setHeader("Content-Disposition", "attachment; filename=stock-analysis.csv");
         CsvExportUtil.writeStockDataToCsv(result, response.getWriter());
     }
 
-    @Operation(summary = "Export stock analytics as Excel", description = "Fetches stock data and analytics for the given symbols and returns the result as a downloadable Excel (.xlsx) file. Custom periods can be specified.")
+    @Operation(summary = "Export stock analytics as Excel", description = "Fetches stock data and analytics for the given symbols and returns the result as a downloadable Excel (.xlsx) file. Custom periods and optional date range can be specified.")
     @PostMapping(value = "/analyze/excel", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     public void analyzeStocksExcel(@RequestBody AnalyticsRequest request, jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
-        Map<String, StockData> result = aggregatorService.fetchAndAggregate(
-            request.getSymbols(),
-            request.getMovingAveragePeriod(),
-            request.getVolatilityPeriod(),
-            request.getShortMAPeriod(),
-            request.getLongMAPeriod()
-        );
+        Map<String, StockData> result = (request.getStartDate() != null && request.getEndDate() != null)
+            ? aggregatorService.fetchAndAggregateWithDateRange(
+                request.getSymbols(),
+                request.getMovingAveragePeriod(),
+                request.getVolatilityPeriod(),
+                request.getShortMAPeriod(),
+                request.getLongMAPeriod(),
+                request.getStartDate(),
+                request.getEndDate())
+            : aggregatorService.fetchAndAggregate(
+                request.getSymbols(),
+                request.getMovingAveragePeriod(),
+                request.getVolatilityPeriod(),
+                request.getShortMAPeriod(),
+                request.getLongMAPeriod());
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment; filename=stock-analysis.xlsx");
         ExcelExportUtil.writeStockDataToExcel(result, response.getOutputStream());

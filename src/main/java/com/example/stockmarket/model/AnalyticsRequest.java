@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -15,4 +16,6 @@ public class AnalyticsRequest {
     private Integer volatilityPeriod = 5;
     private Integer shortMAPeriod = 5;
     private Integer longMAPeriod = 20;
+    private LocalDate startDate;
+    private LocalDate endDate;
 }

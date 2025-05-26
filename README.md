@@ -5,6 +5,7 @@ A robust, multithreaded Spring Boot application for real-time and historical sto
 ## Key Features
 - **Concurrent Data Fetching:** Efficiently fetches real-time and historical stock data for multiple symbols in parallel using a thread pool (ExecutorService).
 - **Customizable Analytics:** Calculates moving averages, volatility, EMA, RSI and simulates a simple moving average trading strategy. All analytics periods are user-configurable per request.
+- **Historical Data Range Selection:** Analyze stock data for a custom date range using `startDate` and `endDate` in your request.
 - **Robust Error Handling:** Gracefully manages API rate limits, network errors, and invalid symbols.
 - **Flexible Output:** Results can be returned as JSON, or exported as CSV or Excel (XLSX) files for further analysis or reporting.
 - **Interactive API Documentation:** Integrated Swagger UI (OpenAPI) for easy exploration and testing of all endpoints.
@@ -28,10 +29,12 @@ Body: {
   "movingAveragePeriod": 10,
   "volatilityPeriod": 10,
   "shortMAPeriod": 5,
-  "longMAPeriod": 20
+  "longMAPeriod": 20,
+  "startDate": "2024-01-01",
+  "endDate": "2024-05-01"
 }
 ```
-Returns analytics and simulation results for each symbol as JSON.
+Returns analytics and simulation results for each symbol as JSON. If `startDate` and `endDate` are provided, analytics are computed only for that date range.
 
 ### Download CSV
 ```
@@ -42,10 +45,12 @@ Body: {
   "movingAveragePeriod": 10,
   "volatilityPeriod": 10,
   "shortMAPeriod": 5,
-  "longMAPeriod": 20
+  "longMAPeriod": 20,
+  "startDate": "2024-01-01",
+  "endDate": "2024-05-01"
 }
 ```
-Returns a CSV file with analytics and simulation results.
+Returns a CSV file with analytics and simulation results for the specified date range.
 
 ### Download Excel
 ```
@@ -56,10 +61,12 @@ Body: {
   "movingAveragePeriod": 10,
   "volatilityPeriod": 10,
   "shortMAPeriod": 5,
-  "longMAPeriod": 20
+  "longMAPeriod": 20,
+  "startDate": "2024-01-01",
+  "endDate": "2024-05-01"
 }
 ```
-Returns an Excel (.xlsx) file with analytics and simulation results.
+Returns an Excel (.xlsx) file with analytics and simulation results for the specified date range.
 
 ## Interactive API Documentation
 
@@ -77,9 +84,9 @@ alphavantage.api.key=YOUR_ALPHA_VANTAGE_API_KEY
 
 ## Example Usage
 ```
-curl -X POST http://localhost:8080/api/stocks/analyze -H "Content-Type: application/json" -d '{"symbols":["AAPL","GOOGL","MSFT"],"movingAveragePeriod":10,"volatilityPeriod":10,"shortMAPeriod":5,"longMAPeriod":20}'
-curl -X POST http://localhost:8080/api/stocks/analyze/csv -H "Content-Type: application/json" -d '{"symbols":["AAPL","GOOGL","MSFT"],"movingAveragePeriod":10,"volatilityPeriod":10,"shortMAPeriod":5,"longMAPeriod":20}' -o stock-analysis.csv
-curl -X POST http://localhost:8080/api/stocks/analyze/excel -H "Content-Type: application/json" -d '{"symbols":["AAPL","GOOGL","MSFT"],"movingAveragePeriod":10,"volatilityPeriod":10,"shortMAPeriod":5,"longMAPeriod":20}' -o stock-analysis.xlsx
+curl -X POST http://localhost:8080/api/stocks/analyze -H "Content-Type: application/json" -d '{"symbols":["AAPL","GOOGL","MSFT"],"movingAveragePeriod":10,"volatilityPeriod":10,"shortMAPeriod":5,"longMAPeriod":20,"startDate":"2024-01-01","endDate":"2024-05-01"}'
+curl -X POST http://localhost:8080/api/stocks/analyze/csv -H "Content-Type: application/json" -d '{"symbols":["AAPL","GOOGL","MSFT"],"movingAveragePeriod":10,"volatilityPeriod":10,"shortMAPeriod":5,"longMAPeriod":20,"startDate":"2024-01-01","endDate":"2024-05-01"}' -o stock-analysis.csv
+curl -X POST http://localhost:8080/api/stocks/analyze/excel -H "Content-Type: application/json" -d '{"symbols":["AAPL","GOOGL","MSFT"],"movingAveragePeriod":10,"volatilityPeriod":10,"shortMAPeriod":5,"longMAPeriod":20,"startDate":"2024-01-01","endDate":"2024-05-01"}' -o stock-analysis.xlsx
 ```
 
 ---
