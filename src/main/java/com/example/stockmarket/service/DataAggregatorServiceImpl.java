@@ -85,6 +85,16 @@ public class DataAggregatorServiceImpl implements DataAggregatorService {
                     data.setEma(ema);
                     Double rsi = stockServiceImpl.calculateRSI(data, movingAveragePeriod);
                     data.setRsi(rsi);
+                    // Calculate Bollinger Bands (using 2 stddev, same period as moving average)
+                    List<Double> upperBand = stockServiceImpl.calculateBollingerUpper(data, movingAveragePeriod, 2.0);
+                    List<Double> lowerBand = stockServiceImpl.calculateBollingerLower(data, movingAveragePeriod, 2.0);
+                    if (!upperBand.isEmpty()) data.setBollingerUpper(upperBand.get(upperBand.size() - 1));
+                    if (!lowerBand.isEmpty()) data.setBollingerLower(lowerBand.get(lowerBand.size() - 1));
+                    // Calculate MACD (12,26,9 standard periods)
+                    List<Double> macdLine = stockServiceImpl.calculateMACD(data, 12, 26);
+                    List<Double> macdSignal = stockServiceImpl.calculateMACDSignal(macdLine, 9);
+                    if (!macdLine.isEmpty()) data.setMacd(macdLine.get(macdLine.size() - 1));
+                    if (!macdSignal.isEmpty()) data.setMacdSignal(macdSignal.get(macdSignal.size() - 1));
                 }
                 results.put(symbol, data);
             } catch (InterruptedException e) {
@@ -148,6 +158,16 @@ public class DataAggregatorServiceImpl implements DataAggregatorService {
                     data.setEma(ema);
                     Double rsi = stockServiceImpl.calculateRSI(data, movingAveragePeriod);
                     data.setRsi(rsi);
+                    // Calculate Bollinger Bands (using 2 stddev, same period as moving average)
+                    List<Double> upperBand = stockServiceImpl.calculateBollingerUpper(data, movingAveragePeriod, 2.0);
+                    List<Double> lowerBand = stockServiceImpl.calculateBollingerLower(data, movingAveragePeriod, 2.0);
+                    if (!upperBand.isEmpty()) data.setBollingerUpper(upperBand.get(upperBand.size() - 1));
+                    if (!lowerBand.isEmpty()) data.setBollingerLower(lowerBand.get(lowerBand.size() - 1));
+                    // Calculate MACD (12,26,9 standard periods)
+                    List<Double> macdLine = stockServiceImpl.calculateMACD(data, 12, 26);
+                    List<Double> macdSignal = stockServiceImpl.calculateMACDSignal(macdLine, 9);
+                    if (!macdLine.isEmpty()) data.setMacd(macdLine.get(macdLine.size() - 1));
+                    if (!macdSignal.isEmpty()) data.setMacdSignal(macdSignal.get(macdSignal.size() - 1));
                 }
                 results.put(symbol, data);
             } catch (InterruptedException e) {

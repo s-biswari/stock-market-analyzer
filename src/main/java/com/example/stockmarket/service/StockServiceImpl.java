@@ -180,4 +180,60 @@ public class StockServiceImpl implements StockService {
         double rs = gain / loss;
         return 100 - (100 / (1 + rs));
     }
+
+    public List<Double> calculateBollingerUpper(StockData data, int period, double numStdDev) {
+        List<Double> upperBand = new ArrayList<>();
+        List<Double> closes = new ArrayList<>(data.getClosingPrices().values());
+        for (int i = 0; i <= closes.size() - period; i++) {
+            List<Double> window = closes.subList(i, i + period);
+            double mean = window.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+            double std = Math.sqrt(window.stream().mapToDouble(p -> Math.pow(p - mean, 2)).sum() / period);
+            upperBand.add(mean + numStdDev * std);
+        }
+        return upperBand;
+    }
+
+    public List<Double> calculateBollingerLower(StockData data, int period, double numStdDev) {
+        List<Double> lowerBand = new ArrayList<>();
+        List<Double> closes = new ArrayList<>(data.getClosingPrices().values());
+        for (int i = 0; i <= closes.size() - period; i++) {
+            List<Double> window = closes.subList(i, i + period);
+            double mean = window.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+            double std = Math.sqrt(window.stream().mapToDouble(p -> Math.pow(p - mean, 2)).sum() / period);
+            lowerBand.add(mean - numStdDev * std);
+        }
+        return lowerBand;
+    }
+
+    public List<Double> calculateMACD(StockData data, int shortPeriod, int longPeriod) {
+        List<Double> closes = new ArrayList<>(data.getClosingPrices().values());
+        List<Double> macd = new ArrayList<>();
+        List<Double> shortEma = calculateEMAList(closes, shortPeriod);
+        List<Double> longEma = calculateEMAList(closes, longPeriod);
+        for (int i = 0; i < closes.size(); i++) {
+            if (i < longEma.size()) {
+                macd.add(shortEma.get(i) - longEma.get(i));
+            } else {
+                macd.add(0.0);
+            }
+        }
+        return macd;
+    }
+
+    public List<Double> calculateMACDSignal(List<Double> macdLine, int signalPeriod) {
+        return calculateEMAList(macdLine, signalPeriod);
+    }
+
+    private List<Double> calculateEMAList(List<Double> prices, int period) {
+        List<Double> ema = new ArrayList<>();
+        double multiplier = 2.0 / (period + 1);
+        for (int i = 0; i < prices.size(); i++) {
+            if (i == 0) {
+                ema.add(prices.get(i));
+            } else {
+                ema.add((prices.get(i) - ema.get(i - 1)) * multiplier + ema.get(i - 1));
+            }
+        }
+        return ema;
+    }
 }

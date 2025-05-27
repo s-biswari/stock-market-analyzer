@@ -52,6 +52,19 @@ Body: {
 ```
 Returns a CSV file with analytics and simulation results for the specified date range.
 
+**CSV Columns:**
+- Symbol
+- Latest Price
+- Moving Average
+- EMA
+- RSI
+- Volatility
+- Bollinger Upper
+- Bollinger Lower
+- MACD
+- MACD Signal
+- Status Message
+
 ### Download Excel
 ```
 POST /api/stocks/analyze/excel
@@ -67,6 +80,19 @@ Body: {
 }
 ```
 Returns an Excel (.xlsx) file with analytics and simulation results for the specified date range.
+
+**Excel Columns:**
+- Symbol
+- Latest Price
+- Moving Average
+- EMA
+- RSI
+- Volatility
+- Bollinger Upper
+- Bollinger Lower
+- MACD
+- MACD Signal
+- Status Message
 
 ## Interactive API Documentation
 

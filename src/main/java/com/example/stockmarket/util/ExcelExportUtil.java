@@ -24,7 +24,11 @@ public class ExcelExportUtil {
             header.createCell(3).setCellValue("RSI");
             header.createCell(4).setCellValue("Moving Average");
             header.createCell(5).setCellValue("Volatility");
-            header.createCell(6).setCellValue("Status Message");
+            header.createCell(6).setCellValue("Bollinger Upper");
+            header.createCell(7).setCellValue("Bollinger Lower");
+            header.createCell(8).setCellValue("MACD");
+            header.createCell(9).setCellValue("MACD Signal");
+            header.createCell(10).setCellValue("Status Message");
             int rowIdx = 1;
             for (StockData stock : data.values()) {
                 Row row = sheet.createRow(rowIdx++);
@@ -34,7 +38,11 @@ public class ExcelExportUtil {
                 row.createCell(3).setCellValue(stock.getRsi() != null ? stock.getRsi() : 0);
                 row.createCell(4).setCellValue(stock.getMovingAverage() != null ? stock.getMovingAverage() : 0);
                 row.createCell(5).setCellValue(stock.getVolatility() != null ? stock.getVolatility() : 0);
-                row.createCell(6).setCellValue(stock.getStatusMessage() != null ? stock.getStatusMessage() : "");
+                row.createCell(6).setCellValue(stock.getBollingerUpper() != null ? stock.getBollingerUpper() : 0);
+                row.createCell(7).setCellValue(stock.getBollingerLower() != null ? stock.getBollingerLower() : 0);
+                row.createCell(8).setCellValue(stock.getMacd() != null ? stock.getMacd() : 0);
+                row.createCell(9).setCellValue(stock.getMacdSignal() != null ? stock.getMacdSignal() : 0);
+                row.createCell(10).setCellValue(stock.getStatusMessage() != null ? stock.getStatusMessage() : "");
             }
             workbook.write(out);
         }

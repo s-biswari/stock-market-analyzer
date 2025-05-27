@@ -17,7 +17,7 @@ public class CsvExportUtil {
 
     public static void writeStockDataToCsv(Map<String, StockData> data, PrintWriter writer) throws IOException {
         try (CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.builder()
-                .setHeader("Symbol", "Latest Price", "Moving Average", "EMA", "RSI", "Volatility", "Status Message")
+                .setHeader("Symbol", "Latest Price", "Moving Average", "EMA", "RSI", "Volatility", "Bollinger Upper", "Bollinger Lower", "MACD", "MACD Signal", "Status Message")
                 .build())) {
             for (StockData stock : data.values()) {
                 csvPrinter.printRecord(
@@ -27,6 +27,10 @@ public class CsvExportUtil {
                         stock.getEma(),
                         stock.getRsi(),
                         stock.getVolatility(),
+                        stock.getBollingerUpper(),
+                        stock.getBollingerLower(),
+                        stock.getMacd(),
+                        stock.getMacdSignal(),
                         stock.getStatusMessage()
                 );
             }

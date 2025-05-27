@@ -19,6 +19,10 @@ public class StockData {
     private Double ema;
     private Double rsi;
     private String statusMessage; // For error/status reporting
+    private Double bollingerUpper;
+    private Double bollingerLower;
+    private Double macd;
+    private Double macdSignal;
 
     public StockData(String symbol, Map<LocalDate, Double> closingPrices) {
         this.symbol = symbol;
