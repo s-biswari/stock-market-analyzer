@@ -8,6 +8,7 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 
 import jakarta.servlet.ServletOutputStream;
+import java.awt.Color;
 import java.io.IOException;
 import java.util.Map;
 
@@ -17,57 +18,128 @@ public class PdfExportUtil {
     }
 
     public static void writeStockDataToPdf(Map<String, StockData> data, ServletOutputStream out) throws IOException {
+        final float margin = 40;
+        final float tableTopY = PDRectangle.LETTER.getHeight() - margin;
+        final float rowHeight = 18;
+        // Adjusted column widths to fit within 612 - 2*40 = 532pt
+        final float[] colWidths = {45, 50, 35, 35, 45, 45, 50, 50, 35, 45, 87};
+        final String[] headers = {"Symbol", "Latest Price", "EMA", "RSI", "Moving Avg", "Volatility", "Bollinger Upper", "Bollinger Lower", "MACD", "MACD Signal", "Status"};
+        final int fontSize = 8;
+
         try (PDDocument document = new PDDocument()) {
             PDPage page = new PDPage(PDRectangle.LETTER);
             document.addPage(page);
-            float y = page.getMediaBox().getHeight() - 40;
             PDPageContentStream contentStream = new PDPageContentStream(document, page);
-            writeHeader(contentStream, y);
-            y -= 20;
-            contentStream.setFont(PDType1Font.HELVETICA, 10);
+            float y = tableTopY;
+            // Draw header row
+            y = drawTableRow(contentStream, headers, y, colWidths, true, fontSize);
+            // Draw data rows
             for (StockData stock : data.values()) {
-                if (y < 60) {
+                String[] row = {
+                    stock.getSymbol(),
+                    formatDouble(stock.getLatestPrice()),
+                    formatDouble(stock.getEma()),
+                    formatDouble(stock.getRsi()),
+                    formatDouble(stock.getMovingAverage()),
+                    formatDouble(stock.getVolatility()),
+                    formatDouble(stock.getBollingerUpper()),
+                    formatDouble(stock.getBollingerLower()),
+                    formatDouble(stock.getMacd()),
+                    formatDouble(stock.getMacdSignal()),
+                    stock.getStatusMessage() != null ? stock.getStatusMessage() : ""
+                };
+                float neededHeight = getRowHeightForWrappedText(row, colWidths, contentStream, rowHeight, fontSize);
+                if (y - neededHeight < margin) {
                     contentStream.close();
                     page = new PDPage(PDRectangle.LETTER);
                     document.addPage(page);
-                    y = page.getMediaBox().getHeight() - 40;
                     contentStream = new PDPageContentStream(document, page);
-                    writeHeader(contentStream, y);
-                    y -= 20;
-                    contentStream.setFont(PDType1Font.HELVETICA, 10);
+                    y = tableTopY;
+                    y = drawTableRow(contentStream, headers, y, colWidths, true, fontSize);
                 }
-                writeStockLine(contentStream, stock, y);
-                y -= 15;
+                y = drawTableRow(contentStream, row, y, colWidths, false, fontSize);
             }
             contentStream.close();
             document.save(out);
         }
     }
 
-    private static void writeHeader(PDPageContentStream contentStream, float y) throws IOException {
-        contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
-        contentStream.beginText();
-        contentStream.newLineAtOffset(40, y);
-        contentStream.showText("Symbol | Latest Price | EMA | RSI | Moving Avg | Volatility | Bollinger Upper | Bollinger Lower | MACD | MACD Signal | Status");
-        contentStream.endText();
+    private static float drawTableRow(PDPageContentStream contentStream, String[] cells, float y, float[] colWidths, boolean isHeader, int fontSize) throws IOException {
+        float x = 40;
+        float maxHeight = 18;
+        contentStream.setStrokingColor(Color.BLACK);
+        contentStream.setLineWidth(0.5f);
+        contentStream.setFont(isHeader ? PDType1Font.HELVETICA_BOLD : PDType1Font.HELVETICA, fontSize);
+        // Calculate max height for wrapped text
+        for (int i = 0; i < cells.length; i++) {
+            float cellHeight = getWrappedTextHeight(cells[i], colWidths[i], fontSize);
+            if (cellHeight > maxHeight) maxHeight = cellHeight;
+        }
+        // Draw cell rectangles
+        for (int i = 0; i < cells.length; i++) {
+            contentStream.addRect(x, y - maxHeight, colWidths[i], maxHeight);
+            contentStream.stroke();
+            x += colWidths[i];
+        }
+        // Draw text
+        x = 40;
+        for (int i = 0; i < cells.length; i++) {
+            drawWrappedText(contentStream, cells[i], x + 2, y - 5, colWidths[i] - 4, fontSize);
+            x += colWidths[i];
+        }
+        return y - maxHeight;
     }
 
-    private static void writeStockLine(PDPageContentStream contentStream, StockData stock, float y) throws IOException {
-        contentStream.beginText();
-        contentStream.newLineAtOffset(40, y);
-        String line = String.format("%s | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f | %s",
-            stock.getSymbol(),
-            stock.getLatestPrice() != null ? stock.getLatestPrice() : 0,
-            stock.getEma() != null ? stock.getEma() : 0,
-            stock.getRsi() != null ? stock.getRsi() : 0,
-            stock.getMovingAverage() != null ? stock.getMovingAverage() : 0,
-            stock.getVolatility() != null ? stock.getVolatility() : 0,
-            stock.getBollingerUpper() != null ? stock.getBollingerUpper() : 0,
-            stock.getBollingerLower() != null ? stock.getBollingerLower() : 0,
-            stock.getMacd() != null ? stock.getMacd() : 0,
-            stock.getMacdSignal() != null ? stock.getMacdSignal() : 0,
-            stock.getStatusMessage() != null ? stock.getStatusMessage() : "");
-        contentStream.showText(line);
-        contentStream.endText();
+    private static void drawWrappedText(PDPageContentStream contentStream, String text, float x, float y, float width, int fontSize) throws IOException {
+        PDType1Font font = PDType1Font.HELVETICA;
+        float leading = 1.2f * fontSize;
+        String[] lines = wrapText(text, font, fontSize, width);
+        for (String line : lines) {
+            contentStream.beginText();
+            contentStream.setFont(font, fontSize);
+            contentStream.newLineAtOffset(x, y);
+            contentStream.showText(line);
+            contentStream.endText();
+            y -= leading;
+        }
+    }
+
+    private static String[] wrapText(String text, PDType1Font font, int fontSize, float width) throws IOException {
+        if (text == null) return new String[]{""};
+        String[] words = text.split(" ");
+        StringBuilder line = new StringBuilder();
+        java.util.List<String> lines = new java.util.ArrayList<>();
+        for (String word : words) {
+            String testLine = line.length() == 0 ? word : line + " " + word;
+            float size = font.getStringWidth(testLine) / 1000 * fontSize;
+            if (size > width && line.length() > 0) {
+                lines.add(line.toString());
+                line = new StringBuilder(word);
+            } else {
+                if (line.length() > 0) line.append(" ");
+                line.append(word);
+            }
+        }
+        if (line.length() > 0) lines.add(line.toString());
+        return lines.toArray(new String[0]);
+    }
+
+    private static float getWrappedTextHeight(String text, float width, int fontSize) throws IOException {
+        PDType1Font font = PDType1Font.HELVETICA;
+        String[] lines = wrapText(text, font, fontSize, width);
+        return lines.length * 1.2f * fontSize;
+    }
+
+    private static float getRowHeightForWrappedText(String[] row, float[] colWidths, PDPageContentStream contentStream, float minHeight, int fontSize) throws IOException {
+        float max = minHeight;
+        for (int i = 0; i < row.length; i++) {
+            float h = getWrappedTextHeight(row[i], colWidths[i], fontSize);
+            if (h > max) max = h;
+        }
+        return max;
+    }
+
+    private static String formatDouble(Double d) {
+        return d != null ? String.format("%.2f", d) : "";
     }
 }
