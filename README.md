@@ -7,7 +7,7 @@ A robust, multithreaded Spring Boot application for real-time and historical sto
 - **Customizable Analytics:** Calculates moving averages, volatility, EMA, RSI and simulates a simple moving average trading strategy. All analytics periods are user-configurable per request.
 - **Historical Data Range Selection:** Analyze stock data for a custom date range using `startDate` and `endDate` in your request.
 - **Robust Error Handling:** Gracefully manages API rate limits, network errors, and invalid symbols.
-- **Flexible Output:** Results can be returned as JSON, or exported as CSV or Excel (XLSX) files for further analysis or reporting.
+- **Flexible Output:** Results can be returned as JSON, or exported as CSV, Excel (XLSX), or PDF files for further analysis or reporting.
 - **Interactive API Documentation:** Integrated Swagger UI (OpenAPI) for easy exploration and testing of all endpoints.
 - **Modern Java & Spring Boot:** Built with Java 17 and Spring Boot 3.x for maximum compatibility and maintainability.
 
@@ -94,6 +94,35 @@ Returns an Excel (.xlsx) file with analytics and simulation results for the spec
 - MACD Signal
 - Status Message
 
+### Download PDF
+```
+POST /api/stocks/analyze/pdf
+Content-Type: application/json
+Body: {
+  "symbols": ["AAPL", "GOOGL", "MSFT"],
+  "movingAveragePeriod": 10,
+  "volatilityPeriod": 10,
+  "shortMAPeriod": 5,
+  "longMAPeriod": 20,
+  "startDate": "2024-01-01",
+  "endDate": "2024-05-01"
+}
+```
+Returns a PDF file with analytics and simulation results for the specified date range.
+
+**PDF Columns:**
+- Symbol
+- Latest Price
+- Moving Average
+- EMA
+- RSI
+- Volatility
+- Bollinger Upper
+- Bollinger Lower
+- MACD
+- MACD Signal
+- Status Message
+
 ## Interactive API Documentation
 
 Once the app is running, access the Swagger UI at:
@@ -113,6 +142,7 @@ alphavantage.api.key=YOUR_ALPHA_VANTAGE_API_KEY
 curl -X POST http://localhost:8080/api/stocks/analyze -H "Content-Type: application/json" -d '{"symbols":["AAPL","GOOGL","MSFT"],"movingAveragePeriod":10,"volatilityPeriod":10,"shortMAPeriod":5,"longMAPeriod":20,"startDate":"2024-01-01","endDate":"2024-05-01"}'
 curl -X POST http://localhost:8080/api/stocks/analyze/csv -H "Content-Type: application/json" -d '{"symbols":["AAPL","GOOGL","MSFT"],"movingAveragePeriod":10,"volatilityPeriod":10,"shortMAPeriod":5,"longMAPeriod":20,"startDate":"2024-01-01","endDate":"2024-05-01"}' -o stock-analysis.csv
 curl -X POST http://localhost:8080/api/stocks/analyze/excel -H "Content-Type: application/json" -d '{"symbols":["AAPL","GOOGL","MSFT"],"movingAveragePeriod":10,"volatilityPeriod":10,"shortMAPeriod":5,"longMAPeriod":20,"startDate":"2024-01-01","endDate":"2024-05-01"}' -o stock-analysis.xlsx
+curl -X POST http://localhost:8080/api/stocks/analyze/pdf -H "Content-Type: application/json" -d '{"symbols":["AAPL","GOOGL","MSFT"],"movingAveragePeriod":10,"volatilityPeriod":10,"shortMAPeriod":5,"longMAPeriod":20,"startDate":"2024-01-01","endDate":"2024-05-01"}' -o stock-analysis.pdf
 ```
 
 ---

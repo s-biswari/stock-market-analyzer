@@ -91,4 +91,27 @@ public class StockController {
         response.setHeader("Content-Disposition", "attachment; filename=stock-analysis.xlsx");
         ExcelExportUtil.writeStockDataToExcel(result, response.getOutputStream());
     }
+
+    @Operation(summary = "Export stock analytics as PDF", description = "Fetches stock data and analytics for the given symbols and returns the result as a downloadable PDF file. Custom periods and optional date range can be specified.")
+    @PostMapping(value = "/analyze/pdf", produces = "application/pdf")
+    public void analyzeStocksPdf(@RequestBody AnalyticsRequest request, HttpServletResponse response) throws java.io.IOException {
+        Map<String, StockData> result = (request.getStartDate() != null && request.getEndDate() != null)
+            ? aggregatorService.fetchAndAggregateWithDateRange(
+                request.getSymbols(),
+                request.getMovingAveragePeriod(),
+                request.getVolatilityPeriod(),
+                request.getShortMAPeriod(),
+                request.getLongMAPeriod(),
+                request.getStartDate(),
+                request.getEndDate())
+            : aggregatorService.fetchAndAggregate(
+                request.getSymbols(),
+                request.getMovingAveragePeriod(),
+                request.getVolatilityPeriod(),
+                request.getShortMAPeriod(),
+                request.getLongMAPeriod());
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=stock-analysis.pdf");
+        com.example.stockmarket.util.PdfExportUtil.writeStockDataToPdf(result, response.getOutputStream());
+    }
 }
