@@ -1,0 +1,240 @@
+{
+  "info": {
+    "name": "Stock Market Analyzer API",
+    "description": "Postman collection for Stock Market Analyzer Spring Boot project",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Portfolio",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"My Portfolio\",\n  \"owner\": \"John Doe\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9090/api/portfolios",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9090",
+          "path": ["api", "portfolios"]
+        }
+      }
+    },
+    {
+      "name": "Get Portfolios",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:9090/api/portfolios",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9090",
+          "path": ["api", "portfolios"]
+        }
+      }
+    },
+    {
+      "name": "Get Portfolio by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:9090/api/portfolios/{id}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9090",
+          "path": ["api", "portfolios", "{id}"]
+        }
+      }
+    },
+    {
+      "name": "Delete Portfolio",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:9090/api/portfolios/{id}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9090",
+          "path": ["api", "portfolios", "{id}"]
+        }
+      }
+    },
+    {
+      "name": "Add Stock to Portfolio",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"symbol\": \"AAPL\",\n  \"quantity\": 10,\n  \"buyPrice\": 150.0\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9090/api/portfolios/{portfolioId}/stocks",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9090",
+          "path": ["api", "portfolios", "{portfolioId}", "stocks"]
+        }
+      }
+    },
+    {
+      "name": "Remove Stock from Portfolio",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:9090/api/portfolios/stocks/{portfolioStockId}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9090",
+          "path": ["api", "portfolios", "stocks", "{portfolioStockId}"]
+        }
+      }
+    },
+    {
+      "name": "Get Stocks in Portfolio",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:9090/api/portfolios/{portfolioId}/stocks",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9090",
+          "path": ["api", "portfolios", "{portfolioId}", "stocks"]
+        }
+      }
+    },
+    {
+      "name": "Get Portfolio Analytics",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"portfolioId\": 1\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9090/api/portfolios/{portfolioId}/analytics",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9090",
+          "path": ["api", "portfolios", "{portfolioId}", "analytics"]
+        }
+      }
+    },
+    {
+      "name": "Analyze Stocks",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"symbols\": [\"AAPL\", \"GOOGL\"],\n  \"movingAveragePeriod\": 20,\n  \"volatilityPeriod\": 30\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9090/api/stocks/analyze",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9090",
+          "path": ["api", "stocks", "analyze"]
+        }
+      }
+    },
+    {
+      "name": "Export Stock Analytics as CSV",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"symbols\": [\"AAPL\", \"GOOGL\"],\n  \"movingAveragePeriod\": 20,\n  \"volatilityPeriod\": 30\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9090/api/stocks/analyze/csv",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9090",
+          "path": ["api", "stocks", "analyze", "csv"]
+        }
+      }
+    },
+    {
+      "name": "Export Stock Analytics as Excel",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"symbols\": [\"AAPL\", \"GOOGL\"],\n  \"movingAveragePeriod\": 20,\n  \"volatilityPeriod\": 30\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9090/api/stocks/analyze/excel",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9090",
+          "path": ["api", "stocks", "analyze", "excel"]
+        }
+      }
+    },
+    {
+      "name": "Export Stock Analytics as PDF",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"symbols\": [\"AAPL\", \"GOOGL\"],\n  \"movingAveragePeriod\": 20,\n  \"volatilityPeriod\": 30\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9090/api/stocks/analyze/pdf",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "9090",
+          "path": ["api", "stocks", "analyze", "pdf"]
+        }
+      }
+    }
+  ]
+}
