@@ -17,11 +17,16 @@ import org.slf4j.LoggerFactory;
 public class StockServiceImpl implements StockService {
     private final AlphaVantageConfig config;
     private final ExecutorService executorService;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private static final Logger log = LoggerFactory.getLogger(StockServiceImpl.class);
+
+    private static final String ERROR_MESSAGE_KEY = "Error Message";
+    private static final String NOTE_KEY = "Note";
+    private static final String TIME_SERIES_KEY_PREFIX = "Time Series";
 
     @Override
     public Future<StockData> fetchStockData(String symbol) {
+        log.info("Fetching stock data for symbol: {}", symbol);
         return executorService.submit(() -> fetchStockDataInternal(symbol));
     }
 
@@ -36,17 +41,20 @@ public class StockServiceImpl implements StockService {
             @SuppressWarnings("unchecked")
             Map<String, Object> response = restTemplate.getForObject(url, Map.class);
             if (response == null) {
+                log.error("No response from Alpha Vantage API for symbol: {}", symbol);
                 return errorStockData(symbol, "No response from Alpha Vantage API");
             }
-            if (response.containsKey("Note")) {
-                return errorStockData(symbol, "API rate limit reached: " + response.get("Note"));
+            if (response.containsKey(NOTE_KEY)) {
+                log.warn("API rate limit reached for symbol: {}. Note: {}", symbol, response.get(NOTE_KEY));
+                return errorStockData(symbol, "API rate limit reached: " + response.get(NOTE_KEY));
             }
-            if (response.containsKey("Error Message")) {
-                return errorStockData(symbol, "API error: " + response.get("Error Message"));
+            if (response.containsKey(ERROR_MESSAGE_KEY)) {
+                log.error("API error for symbol: {}. Error Message: {}", symbol, response.get(ERROR_MESSAGE_KEY));
+                return errorStockData(symbol, "API error: " + response.get(ERROR_MESSAGE_KEY));
             }
             // Find the time series key dynamically
             String timeSeriesKey = response.keySet().stream()
-                .filter(k -> k.contains("Time Series"))
+                .filter(k -> k.contains(TIME_SERIES_KEY_PREFIX))
                 .findFirst().orElse(null);
             if (timeSeriesKey != null) {
                 @SuppressWarnings("unchecked")
@@ -64,11 +72,14 @@ public class StockServiceImpl implements StockService {
                     }
                     if (count >= 30) break; // Limit to most recent 30 valid days
                 }
+                log.info("Successfully fetched stock data for symbol: {}", symbol);
                 return new StockData(symbol, prices);
             } else {
+                log.error("Unexpected API response structure for symbol: {}. Response keys: {}", symbol, response.keySet());
                 return errorStockData(symbol, "Unexpected API response structure: " + response.keySet());
             }
         } catch (Exception e) {
+            log.error("Exception while fetching stock data for symbol: {}. Exception: {}", symbol, e.getMessage());
             return errorStockData(symbol, "Exception: " + e.getMessage());
         }
     }
@@ -77,6 +88,7 @@ public class StockServiceImpl implements StockService {
         try {
             return LocalDate.parse(dateStr);
         } catch (Exception e) {
+            log.warn("Failed to parse date: {}", dateStr);
             return null;
         }
     }
@@ -85,11 +97,13 @@ public class StockServiceImpl implements StockService {
         try {
             return Double.parseDouble(doubleStr);
         } catch (Exception e) {
+            log.warn("Failed to parse double: {}", doubleStr);
             return null;
         }
     }
 
     private StockData errorStockData(String symbol, String message) {
+        log.error("Error fetching stock data for symbol: {}. Message: {}", symbol, message);
         StockData errorData = new StockData();
         errorData.setSymbol(symbol);
         errorData.setStatusMessage(message);
