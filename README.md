@@ -102,6 +102,36 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 spring.jpa.hibernate.ddl-auto=update
 ```
 
+## Redis Integration
+
+### Caching Stock Prices
+- Redis is used to cache stock prices for improved performance.
+- Cached data expires after 12 hours.
+
+### Redis Configuration
+Add Redis settings to `src/main/resources/application.properties`:
+```
+spring.redis.host=localhost
+spring.redis.port=6379
+```
+
+### Inspect Redis Keys
+Use the following commands to inspect Redis keys:
+```
+redis-cli
+KEYS *
+GET <key>
+TTL <key>
+```
+
+### Clear Redis Keys
+To clear all keys in Redis:
+```
+FLUSHALL
+```
+
+---
+
 ## Interactive API Documentation
 Once the app is running, access the Swagger UI at:
 - http://localhost:8080/swagger-ui.html

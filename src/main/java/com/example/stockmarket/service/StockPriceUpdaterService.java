@@ -8,7 +8,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,14 +21,13 @@ public class StockPriceUpdaterService {
     private final PortfolioStockRepository portfolioStockRepository;
     private final RestTemplate restTemplate;
     private final AlphaVantageConfig config;
+    private final RedisTemplate<String, Double> redisTemplate;
 
-    // Cache to store stock prices temporarily
-    private final Map<String, Double> priceCache = new HashMap<>();
-
-    public StockPriceUpdaterService(PortfolioStockRepository portfolioStockRepository, RestTemplate restTemplate, AlphaVantageConfig config) {
+    public StockPriceUpdaterService(PortfolioStockRepository portfolioStockRepository, RestTemplate restTemplate, AlphaVantageConfig config, RedisTemplate<String, Double> redisTemplate) {
         this.portfolioStockRepository = portfolioStockRepository;
         this.restTemplate = restTemplate;
         this.config = config;
+        this.redisTemplate = redisTemplate;
     }
 
     @SuppressWarnings("unchecked")
@@ -40,19 +41,19 @@ public class StockPriceUpdaterService {
         }
     }
 
-    @Scheduled(cron = "0 */2 * * * ?")
+    @Scheduled(cron = "0 30 0 * * ?")
     public void updateStockPrices() {
         List<PortfolioStock> stocks = portfolioStockRepository.findAll();
         for (PortfolioStock stock : stocks) {
             try {
                 String symbol = stock.getSymbol();
 
-                // Check cache for the stock price
-                Double cachedPrice = priceCache.get(symbol);
+                // Check Redis cache for the stock price
+                Double cachedPrice = redisTemplate.opsForValue().get(symbol);
                 if (cachedPrice != null) {
                     stock.setCurrentPrice(cachedPrice);
                     portfolioStockRepository.save(stock);
-                    logger.info("Updated current price for {} from cache: {}", symbol, cachedPrice);
+                    logger.info("Updated current price for {} from Redis cache: {}", symbol, cachedPrice);
                     continue;
                 }
 
@@ -67,8 +68,8 @@ public class StockPriceUpdaterService {
                         stock.setCurrentPrice(currentPrice);
                         portfolioStockRepository.save(stock);
 
-                        // Update cache
-                        priceCache.put(symbol, currentPrice);
+                        // Update Redis cache
+                        redisTemplate.opsForValue().set(symbol, currentPrice, Duration.ofHours(12));
                         logger.info("Updated current price for {}: {}", symbol, currentPrice);
                     }
                 } else {
@@ -78,8 +79,5 @@ public class StockPriceUpdaterService {
                 logger.error("Failed to update price for stock {}: {}", stock.getSymbol(), e.getMessage());
             }
         }
-
-        // Clear cache after update
-        priceCache.clear();
     }
 }
